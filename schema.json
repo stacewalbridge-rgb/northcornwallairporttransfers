@@ -2,9 +2,9 @@
   "@context": "https://schema.org",
   "@type": "TaxiService",
   "name": "North Cornwall Airport Transfers",
-  "url": "https://YOUR-DOMAIN.co.uk",
+  "url": "https://northcornwallairporttransfers.co.uk",
   "telephone": "+44XXXXXXXXXX",
-  "email": "bookings@YOUR-DOMAIN.co.uk",
+  "email": "bookings@northcornwallairporttransfers.co.uk",
   "areaServed": [
     "North Cornwall",
     "Bude",

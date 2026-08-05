@@ -5,6 +5,7 @@
  set("[data-business]",c.businessName); set("[data-phone]",c.phoneDisplay); set("[data-email]",c.email);
  set("[data-phone-link]","tel:+"+String(c.phoneLink||"").replace(/\D/g,""),"href");
  set("[data-email-link]","mailto:"+c.email,"href"); set("[data-facebook]",c.facebookUrl,"href");
+ document.querySelectorAll("[data-whatsapp]").forEach(el=>el.href="https://wa.me/"+String(c.whatsappNumber||"").replace(/\D/g,"")+"?text="+encodeURIComponent("Hello, I would like a quote for an airport transfer."));
  set("[data-domain]",c.domain); set("[data-licence]",c.operatorLicence);
  const nav=document.querySelector(".nav-toggle"), menu=document.querySelector(".menu");
  if(nav&&menu) nav.addEventListener("click",()=>menu.classList.toggle("open"));
