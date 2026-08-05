@@ -2,7 +2,6 @@
 
 Main domain: `northcornwallairporttransfers.co.uk`
 
-Edit `site-config.js` first and add the dedicated phone number, WhatsApp number, booking email, Facebook URL and operator licence number.
 
 Deploy as **Cloudflare Pages**, not a Worker:
 1. Upload and replace the files in the existing GitHub repository.
