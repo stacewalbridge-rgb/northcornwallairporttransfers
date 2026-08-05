@@ -1,0 +1,12 @@
+QUICK SETUP CHECKLIST
+
+1. Extract the ZIP.
+2. Open site-config.js in Notepad.
+3. Add the dedicated phone number, domain, email, Facebook URL and licence number.
+4. Use Find/Replace to replace YOUR-DOMAIN.co.uk in the entire project.
+5. Upload all files to a new GitHub repository.
+6. Connect the repository to Cloudflare Pages.
+7. Add the custom domain inside Cloudflare.
+8. Configure a reliable form endpoint and test it.
+9. Complete the legal pages with the real legal entity, address and operating terms.
+10. Submit sitemap.xml to Google Search Console.
