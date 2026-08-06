@@ -71,4 +71,10 @@
 <url><loc>https://northcornwallairporttransfers.co.uk/ports/portsmouth-port-transfers.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
 <url><loc>https://northcornwallairporttransfers.co.uk/ports/falmouth-port-transfers.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
 <url><loc>https://northcornwallairporttransfers.co.uk/ports/cruise-terminal-transfers.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+
+  <url>
+    <loc>https://northcornwallairporttransfers.co.uk/business-accounts.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
 </urlset>
