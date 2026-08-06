@@ -1,5 +1,5 @@
-const CACHE='ncat-v17-correct-cards-20260806';
-const CORE=['/','/index.html','/airports.html','/stations.html','/ports.html','/styles.css?v=17','/app.js?v=17','/site-config.js?v=17','/assets/generic-train-station.svg','/assets/generic-seaport.svg'];
+const CACHE='ncat-v18-hero-mobile-fix-20260806';
+const CORE=['/','/index.html','/styles.css?v=18','/app.js?v=18','/site-config.js?v=18','/assets/bristol-airport-transfer.webp'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)))});
 self.addEventListener('activate',e=>{e.waitUntil(Promise.all([
   caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))),
