@@ -1,5 +1,5 @@
-const CACHE='ncat-v10-20260806';
-const CORE=['/','/index.html','/styles.css?v=10','/app.js?v=10','/site-config.js?v=10','/assets/brand-logo.webp'];
+const CACHE='ncat-v11-20260806';
+const CORE=['/','/index.html','/styles.css?v=11','/app.js?v=11','/site-config.js?v=11','/assets/brand-logo.webp'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)))});
 self.addEventListener('activate',e=>{e.waitUntil(Promise.all([
   caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))),

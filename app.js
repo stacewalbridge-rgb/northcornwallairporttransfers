@@ -56,46 +56,78 @@
     const date=form.querySelector('input[type="date"]');
     if(date) date.min=new Date().toISOString().split('T')[0];
 
-    form.addEventListener('submit',async e=>{
-      e.preventDefault();
-      const d=new FormData(form);
-      const o=Object.fromEntries(d.entries());
-      const subject='Transfer quote request: '+(o.pickup||'Pickup')+' to '+(o.destination||'Destination');
-      const lines=[
-        'NEW TRANSFER QUOTE REQUEST',
+    const getValue=(...names)=>{
+      for(const name of names){
+        const field=form.elements[name];
+        if(field && String(field.value||'').trim()) return String(field.value).trim();
+      }
+      return '';
+    };
+
+    const buildMessage=()=>{
+      const pickup=getValue('pickup','pickup_address');
+      const destination=getValue('destination','airport','dropoff');
+      const dateValue=getValue('date','collection_date');
+      const timeValue=getValue('time','pickup_time','collection_time');
+      const passengers=getValue('passengers');
+      const luggage=getValue('luggage','large_cases');
+      const journey=getValue('journey_type','journey');
+      const name=getValue('name','customer_name');
+      const customerPhone=getValue('phone','telephone');
+      const customerEmail=getValue('email','customer_email');
+      const details=getValue('details','message','requirements');
+
+      return [
+        'Hello, I would like a transfer quotation.',
         '',
-        'Pickup: '+(o.pickup||''),
-        'Destination: '+(o.destination||''),
-        'Collection date: '+(o.date||''),
-        'Collection time: '+(o.time||''),
-        'Passengers: '+(o.passengers||''),
-        'Luggage: '+(o.luggage||''),
-        'Journey type: '+(o.journey_type||o.journey||''),
-        'Name: '+(o.name||''),
-        'Telephone: '+(o.phone||''),
-        'Customer email: '+(o.email||''),
+        'Pickup: '+pickup,
+        'Destination: '+destination,
+        'Collection date: '+dateValue,
+        'Collection time: '+timeValue,
+        'Passengers: '+passengers,
+        'Luggage / large cases: '+luggage,
+        'Journey type: '+journey,
         '',
-        'Travel details / special requirements:',
-        o.details||''
-      ];
-      const endpoint=C.quoteFormEndpoint||C.formEndpoint||'';
-      const status=form.querySelector('.form-status');
-      try{
-        if(endpoint){
-          const r=await fetch(endpoint,{method:'POST',body:d,headers:{Accept:'application/json'}});
-          if(!r.ok) throw Error();
-          if(status) status.textContent='Thank you. Your quotation request has been sent.';
-          form.reset();
-        }else{
+        'Name: '+name,
+        'Telephone: '+customerPhone,
+        'Email: '+customerEmail,
+        '',
+        'Additional details:',
+        details
+      ].join('\n');
+    };
+
+    const validateForm=()=>{
+      if(!form.reportValidity()) return false;
+      return true;
+    };
+
+    form.querySelectorAll('[data-send-method]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        if(!validateForm()) return;
+        const method=btn.dataset.sendMethod;
+        const message=buildMessage();
+        const status=form.querySelector('.form-status');
+
+        if(method==='whatsapp'){
+          window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(message),'_blank','noopener');
+          if(status) status.textContent='WhatsApp has been opened with your quotation details ready to send.';
+        }else if(method==='email'){
+          const subject='Transfer quotation request';
           window.location.href='mailto:'+email+
             '?subject='+encodeURIComponent(subject)+
-            '&body='+encodeURIComponent(lines.join('\n'));
-          if(status) status.textContent='Your email app should now open with the quotation details ready to send.';
+            '&body='+encodeURIComponent(message);
+          if(status) status.textContent='Your email application should now open with the quotation details ready to send.';
+        }else if(method==='sms'){
+          const isiOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+          const separator=isiOS?'&':'?';
+          window.location.href='sms:+'+phone+separator+'body='+encodeURIComponent(message);
+          if(status) status.textContent='Your text messaging app should now open with the quotation details ready to send.';
         }
-      }catch{
-        if(status) status.textContent='The form could not open. Please email '+email+', call or WhatsApp us.';
-      }
+      });
     });
+
+    form.addEventListener('submit',e=>e.preventDefault());
   }
 
   let deferred;
@@ -115,6 +147,6 @@
   });
 
   if('serviceWorker' in navigator){
-    window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js?v=10').catch(()=>{}));
+    window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js?v=11').catch(()=>{}));
   }
 })();
