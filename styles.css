@@ -1673,3 +1673,111 @@ main > .section:has(.feature-image){
   main > .section.soft:has(.feature-image),
   main > .section:has(.feature-image){padding-top:22px!important}
 }
+
+
+/* V17 correctly matched destination cards */
+.clean-destination-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:24px!important;
+}
+.clean-destination-card{
+  display:flex!important;
+  flex-direction:column!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  border:1px solid #d8e3e9!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  box-shadow:0 12px 34px rgba(7,31,54,.08)!important;
+}
+.clean-destination-card,
+.clean-destination-card:nth-child(1),
+.clean-destination-card:nth-child(2){
+  grid-column:auto!important;
+}
+.clean-destination-card .destination-image-link{
+  display:block!important;
+  position:relative!important;
+  overflow:hidden!important;
+  background:#eaf4fa!important;
+}
+.clean-destination-card img{
+  position:static!important;
+  width:100%!important;
+  height:auto!important;
+  aspect-ratio:16/10!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+}
+.clean-destination-card .copy{
+  position:static!important;
+  inset:auto!important;
+  flex:1!important;
+  padding:22px!important;
+  color:#142a3d!important;
+  background:#fff!important;
+}
+.clean-destination-card .copy h3{
+  margin:0 0 9px!important;
+  color:#0b2944!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:1.55rem!important;
+  line-height:1.1!important;
+}
+.clean-destination-card .copy p{
+  margin:0 0 16px!important;
+  min-height:54px!important;
+  color:#617585!important;
+  font-size:.92rem!important;
+  line-height:1.55!important;
+}
+.clean-destination-card .destination-details-link{
+  display:inline-flex!important;
+  color:#a7772e!important;
+  font-weight:850!important;
+  text-decoration:none!important;
+}
+.clean-destination-card:hover img{
+  transform:none!important;
+  opacity:1!important;
+}
+@media(max-width:920px){
+  .clean-destination-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+@media(max-width:680px){
+  body{padding-bottom:100px!important}
+  .clean-destination-grid{
+    grid-template-columns:1fr!important;
+    gap:18px!important;
+  }
+  .clean-destination-card{
+    border-radius:10px!important;
+  }
+  .clean-destination-card img{
+    aspect-ratio:16/9!important;
+    object-fit:contain!important;
+    background:#dfeef7!important;
+  }
+  .clean-destination-card .copy{
+    padding:18px!important;
+  }
+  .clean-destination-card .copy h3{
+    font-size:1.4rem!important;
+  }
+  .clean-destination-card .copy p{
+    min-height:0!important;
+  }
+  .clean-destination-card:last-child{
+    margin-bottom:92px!important;
+  }
+  .sticky-mobile{
+    bottom:10px!important;
+    z-index:2000!important;
+  }
+}
