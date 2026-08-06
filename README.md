@@ -1,33 +1,45 @@
-# North Cornwall Airport Transfers V3
+# North Cornwall Airport Transfers V5
 
-Main domain: https://northcornwallairporttransfers.co.uk
-Phone / WhatsApp: 07356 070904
+This is the premium, responsive website build.
+
+## Contact details
+Phone and WhatsApp: 07356 070904
 Email: robs-travel@dr.com
+Website: https://northcornwallairporttransfers.co.uk
 
-This version is completely separate from Rob's Travel branding. No cross-links, shared logos, sponsor claims or promotional references have been included.
+## Mobile behaviour
+The website automatically changes layout by screen width:
+- desktop: full navigation and multi-column content;
+- tablet: two-column content;
+- phone: one-column content, collapsible menu, large fields and fixed Call/WhatsApp buttons.
+
+No separate mobile website is required.
 
 ## Upload
+1. Extract this ZIP.
+2. Open the existing GitHub repository.
+3. Add file > Upload files.
+4. Upload everything inside this folder.
+5. Commit changes.
+6. Allow Cloudflare to deploy automatically.
+7. Refresh the live site using Ctrl+F5 or clear the phone browser cache.
 
-Upload every file and folder in this directory to the root of the existing GitHub repository and commit the changes. Cloudflare will redeploy the connected project automatically.
+## Included
+- 59 SEO pages
+- airport and pickup-area pages
+- original locally hosted travel illustrations
+- responsive design
+- call and WhatsApp actions
+- quote form
+- structured data
+- sitemap.xml
+- robots.txt
+- manifest
+- Google Business Profile setup guide
 
-## After deployment
+## Form delivery
+The form currently uses the configured fallback email unless a form endpoint is added in site-config.js.
+Test it from the live website before advertising.
 
-1. Test the homepage, quote form, call button and WhatsApp button.
-2. Add the site to Google Search Console.
-3. Submit `https://northcornwallairporttransfers.co.uk/sitemap.xml`.
-4. Connect a reliable form endpoint in `site-config.js`; the current fallback opens the visitor's email application.
-5. Add genuine vehicle photographs and real customer reviews only when available and authorised.
-6. Keep airport and area pages useful and accurate. Do not create fake addresses, fake reviews or guaranteed ranking claims.
-7. Improve individual pages over time with original local information and photographs.
-
-## Search engine work still required outside the code
-
-- Google Search Console verification
-- Genuine Google Business Profile setup, only if eligible
-- Consistent business citations
-- Customer review requests
-- Local links from accommodation providers and businesses
-- Regular useful guide updates
-- Real performance and conversion monitoring
-
-No website can guarantee the first position in Google.
+## Google Maps / Business Profile
+Read GOOGLE-BUSINESS-PROFILE-GUIDE.txt before creating the profile.
