@@ -5,9 +5,9 @@ window.SITE_CONFIG = {
   phoneDisplay: "07356 070904",
   phoneLink: "447356070904",
   whatsappNumber: "447356070904",
-  email: "robs-travel@dr.com",
+  email: "info@northcornwallairporttransfers.co.uk",
   facebookUrl: "https://www.facebook.com/NorthCornwallAirportTransfers",
   operatorLicence: "",
-  serviceArea: "North Cornwall, North Devon and nationwide UK airport journeys",
+  serviceArea: "Local and long-distance airport, seaport, station and UK transfer journeys",
   formEndpoint: "", analyticsId: "", googleVerification: ""
 };
