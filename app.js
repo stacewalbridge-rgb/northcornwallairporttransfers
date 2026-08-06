@@ -1,152 +1,74 @@
-(()=>{
-  const C=window.SITE_CONFIG||{};
-  const phone=(C.phoneLink||'447356070904').replace(/\D/g,'');
-  const display=C.phoneDisplay||'07356 070904';
-  const email=C.email||'info@northcornwallairporttransfers.co.uk';
+import { initFirebase, liveState, signIn, signOutUser, addLiveBooking, subscribeBookings, updateLiveBooking, setDriverOnline } from './live-services.js';
+import { attachAutocomplete, reverseGeocode, calculateRoute, showRouteMap, loadGoogleMaps } from './maps-services.js';
 
-  document.querySelectorAll('[data-phone-link]:not([data-email-link])').forEach(a=>{
-    a.href='tel:+'+phone;
-    if(!a.textContent.trim() || !a.textContent.includes('Call')) a.textContent=display;
-  });
-  document.querySelectorAll('[data-whatsapp]').forEach(a=>{
-    a.href='https://wa.me/'+phone+'?text='+encodeURIComponent('Hello, I would like a transfer quotation.');
-  });
-  document.querySelectorAll('[data-email-link]').forEach(a=>{
-    a.href='mailto:'+email;
-    a.textContent=email;
-  });
-  document.querySelectorAll('[data-year]').forEach(e=>e.textContent=new Date().getFullYear());
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const storeKey='robsTravelBookingsV4';
+let deferredPrompt=null, remoteBookings=[], unsubscribe=()=>{}, driverWatchId=null, latestRoute=null;
+const config=window.ROBS_TRAVEL_CONFIG||{};
+const fareConfig=config.fareConfig||{bookingCharge:1,luggageCharge:.25,extraStopCharge:2,tariffs:{day:{standard:{flag:3.2,perMile:2.3,minimum:5},large:{flag:4.8,perMile:3.2,minimum:7}}}};
 
-  const button=document.querySelector('.nav-toggle');
-  const menu=document.querySelector('.menu');
-  if(button&&menu){
-    button.setAttribute('aria-expanded','false');
-    button.addEventListener('click',()=>{
-      const open=menu.classList.toggle('open');
-      button.setAttribute('aria-expanded',String(open));
-      button.textContent=open?'Close':'Menu';
-      document.body.classList.toggle('menu-open',open);
-    });
-    menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{
-      menu.classList.remove('open');
-      button.setAttribute('aria-expanded','false');
-      button.textContent='Menu';
-      document.body.classList.remove('menu-open');
-    }));
-    document.addEventListener('keydown',e=>{
-      if(e.key==='Escape'){
-        menu.classList.remove('open');
-        button.setAttribute('aria-expanded','false');
-        button.textContent='Menu';
-        document.body.classList.remove('menu-open');
-      }
-    });
-  }
+function localBookings(){return JSON.parse(localStorage.getItem(storeKey)||'[]')}
+function currentBookings(){return liveState.firebaseReady&&liveState.user?remoteBookings:localBookings()}
+function saveLocal(v){localStorage.setItem(storeKey,JSON.stringify(v));renderAll()}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800)}
+function fillSelect(id,max){const e=$(id);for(let i=0;i<=max;i++)e.add(new Option(i,i))}
+fillSelect('#handLuggage',8);fillSelect('#largeLuggage',8);fillSelect('#xlLuggage',8);for(let i=1;i<=8;i++)$('#passengers').add(new Option(i,i));
+const now=new Date();$('#date').value=now.toISOString().slice(0,10);$('#time').value=now.toTimeString().slice(0,5);
 
-  document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
-    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(x=>x.hidden=true);
-    btn.classList.add('active');
-    const panel=document.getElementById(btn.dataset.tab);
-    if(panel) panel.hidden=false;
-  }));
+function renderQuickDestinations(){
+  const makeButton=d=>`<button type="button" class="quick-destination" data-destination="${encodeURIComponent(d.address)}" data-name="${encodeURIComponent(d.name)}">✈️ ${d.name}${d.fixedPrice?`<small>Fixed guide price £${Number(d.fixedPrice).toFixed(2)}</small>`:'<small>Route estimate</small>'}</button>`;
+  const html=(config.quickDestinations||[]).map(makeButton).join('');
+  $('#airportButtons').innerHTML=html;$('#formAirportButtons').innerHTML=html;
+  $$('.quick-destination').forEach(b=>b.onclick=()=>{const address=decodeURIComponent(b.dataset.destination);$('#destination').value=address;$('#bookingPanel').classList.remove('hidden');$('#bookingTitle').textContent='Airport transfer';$('#bookingPanel').scrollIntoView({behavior:'smooth'});toast(`${decodeURIComponent(b.dataset.name)} selected`)});
+}
+renderQuickDestinations();
 
-  const form=document.querySelector('#quote-form');
-  if(form){
-    const date=form.querySelector('input[type="date"]');
-    if(date) date.min=new Date().toISOString().split('T')[0];
+$$('[data-view]').forEach(b=>b.onclick=()=>{$$('.view').forEach(v=>v.classList.remove('active'));$('#'+b.dataset.view).classList.add('active');$$('.bottom-nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderAll()});
+$$('[data-action="book-now"],[data-action="book-later"]').forEach(b=>b.onclick=()=>{const later=b.dataset.action==='book-later';$('#bookingTitle').textContent=later?'Book for later':'Book now';$('#bookingPanel').classList.remove('hidden');if(!later)locate();$('#bookingPanel').scrollIntoView({behavior:'smooth'})});
+$('[data-action="close-booking"]').onclick=()=>$('#bookingPanel').classList.add('hidden');
+$('#locateBtn').onclick=locate;
+async function locate(){
+  const status=$('#gpsStatus');
+  if(!navigator.geolocation){status.textContent='This device does not support GPS location.';status.className='gps-status error';return toast('Location is not supported on this device')}
+  status.textContent='Finding your precise pickup location…';status.className='gps-status';$('#pickup').value='Checking your location…';
+  navigator.geolocation.getCurrentPosition(async p=>{const {latitude,longitude,accuracy}=p.coords;Object.assign($('#pickup').dataset,{lat:latitude,lng:longitude,accuracy:Math.round(accuracy)});let address=null;try{address=await reverseGeocode(latitude,longitude)}catch(e){console.warn(e)}$('#pickup').value=address||`Current location (${latitude.toFixed(5)}, ${longitude.toFixed(5)})`;status.innerHTML=`Pickup found <span class="location-accuracy">(accuracy about ${Math.round(accuracy)} metres)</span>. Please check the address before booking.`;toast('Pickup location added')},err=>{ $('#pickup').value='';const messages={1:'Location permission was blocked. Allow location for this site and try again.',2:'Your location could not be found. Enter the pickup manually.',3:'Location timed out. Try again.'};status.textContent=messages[err.code]||'Location could not be obtained.';status.className='gps-status error';toast('Location was not available')},{enableHighAccuracy:true,timeout:18000,maximumAge:15000});
+}
+$('#addStopBtn').onclick=()=>{const i=document.createElement('input');i.placeholder='Additional stop address';i.className='stop';$('#stops').append(i);attachAutocomplete(i)};
+function estimatedMiles(){const dest=$('#destination').value.trim(),pickup=$('#pickup').value.trim();if(!dest||!pickup)return 0;const seed=[...dest+pickup].reduce((a,c)=>a+c.charCodeAt(0),0);return Math.max(1.2,Math.min(85,(seed%430)/10))}
+function norm(v=''){return v.toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()}
+function fixedRouteMatch(pickup,destination){const p=norm(pickup),d=norm(destination);for(const r of config.prePricedRoutes||[]){const forward=(r.from||[]).some(x=>p.includes(norm(x)))&&(r.to||[]).some(x=>d.includes(norm(x)));const reverse=(r.bidirectional!==false)&&(r.to||[]).some(x=>p.includes(norm(x)))&&(r.from||[]).some(x=>d.includes(norm(x)));if(forward||reverse)return r}const quick=(config.quickDestinations||[]).find(x=>x.fixedPrice&&d.includes(norm(x.name)));return quick?{price:quick.fixedPrice,label:quick.name}:null}
+function automaticTariff(){const date=$('#date').value,time=$('#time').value||'12:00';const dt=new Date(`${date}T${time}:00`),day=dt.getDay(),hour=dt.getHours(),month=dt.getMonth()+1,dateNo=dt.getDate();if((month===12&&dateNo>=24)||(month===1&&dateNo===1))return'special';if(day===0||hour<7||hour>=23)return'night';return'day'}
+async function calcEstimate(){
+  const pickup=$('#pickup').value.trim(),destination=$('#destination').value.trim();if(!pickup||!destination)return toast('Enter pickup and destination first');
+  $('#estimateBtn').disabled=true;$('#estimateBtn').textContent='Calculating route…';
+  let miles=0,mins=0,source='demonstration distance';
+  try{latestRoute=await calculateRoute(pickup,destination,$$('.stop').map(x=>x.value).filter(Boolean));if(latestRoute){miles=latestRoute.miles;mins=latestRoute.minutes;source='Google driving route';await showRouteMap($('#routeMap'),latestRoute.result);$('#routeMap').classList.remove('hidden')}}catch(e){console.warn('Live route unavailable',e)}
+  if(!miles){miles=estimatedMiles();mins=Math.round(miles*2.1+5)}
+  const fixed=fixedRouteMatch(pickup,destination);let price,priceType,tariffName='';
+  if(fixed){price=Number(fixed.price);priceType='Pre-priced Rob\'s Travel route';}
+  else{const pax=Number($('#passengers').value),size=pax>=5||$('#vehicle').value.includes('MPV')?'large':'standard';const requested=$('#fareType').value,tariffKey=requested==='auto'?automaticTariff():requested;const tariff=(fareConfig.tariffs[tariffKey]||fareConfig.tariffs.day)[size];const luggage=(Number($('#largeLuggage').value)+Number($('#xlLuggage').value))*fareConfig.luggageCharge;const stops=$$('.stop').length*fareConfig.extraStopCharge;price=Math.max(tariff.minimum,tariff.flag+miles*tariff.perMile+fareConfig.bookingCharge+luggage+stops);priceType='Cornwall Council tariff guide';tariffName=tariffKey;}
+  $('#estimateBox').innerHTML=`<strong style="font-size:28px">£${price.toFixed(2)}</strong>${fixed?'<span class="fixed-price">Pre-priced route</span>':''}<p>${priceType}${tariffName?` (${tariffName})`:''}<br>Guide distance: ${miles.toFixed(1)} miles<br>Guide driving time: ${mins} minutes.<br><small>Calculated using ${source}. This remains a guide until accepted by Rob's Travel.</small></p>`;
+  Object.assign($('#estimateBox').dataset,{price:price.toFixed(2),miles:miles.toFixed(1),minutes:String(mins),source,priceType,tariff:tariffName,fixedLabel:fixed?.label||''});$('#estimateBox').classList.remove('hidden');$('#estimateBtn').disabled=false;$('#estimateBtn').textContent='Recalculate estimated fare';
+}
+$('#estimateBtn').onclick=calcEstimate;
 
-    const getValue=(...names)=>{
-      for(const name of names){
-        const field=form.elements[name];
-        if(field && String(field.value||'').trim()) return String(field.value).trim();
-      }
-      return '';
-    };
+function formBooking(){return {reference:'RT'+Date.now().toString().slice(-7),pickup:$('#pickup').value,pickupCoordinates:$('#pickup').dataset.lat?{lat:Number($('#pickup').dataset.lat),lng:Number($('#pickup').dataset.lng),accuracy:Number($('#pickup').dataset.accuracy||0)}:null,destination:$('#destination').value,destinationCoordinates:$('#destination').dataset.lat?{lat:Number($('#destination').dataset.lat),lng:Number($('#destination').dataset.lng)}:null,stops:$$('.stop').map(x=>x.value).filter(Boolean),journeyDate:$('#date').value,journeyTime:$('#time').value,passengers:Number($('#passengers').value),vehicle:$('#vehicle').value,luggage:{hand:Number($('#handLuggage').value),large:Number($('#largeLuggage').value),extraLarge:Number($('#xlLuggage').value)},travelDetails:$('#travelDetails').value,returnJourney:$('#returnJourney').checked,name:$('#name').value||'Customer',mobile:$('#mobile').value,email:$('#email').value,payment:$('#payment').value,notes:$('#notes').value,estimate:$('#estimateBox').dataset.price||null,estimatedMiles:$('#estimateBox').dataset.miles||null,estimatedMinutes:$('#estimateBox').dataset.minutes||null,routeSource:$('#estimateBox').dataset.source||null,priceType:$('#estimateBox').dataset.priceType||null,tariff:$('#estimateBox').dataset.tariff||null,fixedRoute:$('#estimateBox').dataset.fixedLabel||null,status:'pending',driverId:null,driverName:null,createdAt:new Date().toISOString()}}
+$('#bookingForm').onsubmit=async e=>{e.preventDefault();if(!$('#estimateBox').dataset.price){await calcEstimate();if(!$('#estimateBox').dataset.price)return}const job=formBooking();try{if(liveState.firebaseReady)await addLiveBooking(job);else saveLocal([{...job,id:job.reference},...localBookings()]);toast(`Booking request ${job.reference} sent`);e.target.reset();$('#bookingPanel').classList.add('hidden')}catch(err){console.error(err);toast('The booking could not be sent. Please call us instead.')}};
 
-    const buildMessage=()=>{
-      const pickup=getValue('pickup','pickup_address');
-      const destination=getValue('destination','airport','dropoff');
-      const dateValue=getValue('date','collection_date');
-      const timeValue=getValue('time','pickup_time','collection_time');
-      const passengers=getValue('passengers');
-      const luggage=getValue('luggage','large_cases');
-      const journey=getValue('journey_type','journey');
-      const name=getValue('name','customer_name');
-      const customerPhone=getValue('phone','telephone');
-      const customerEmail=getValue('email','customer_email');
-      const details=getValue('details','message','requirements');
+function normaliseStatus(s='pending'){return s.charAt(0).toUpperCase()+s.slice(1)}
+function jobHTML(j,mode){const status=(j.status||'pending').toLowerCase(),id=j.id||j.reference,date=j.journeyDate||j.date,time=j.journeyTime||j.time;let actions='';if(mode==='owner'&&['pending','declined'].includes(status))actions=`<div class="job-actions"><button class="primary" onclick="window.updateJob('${id}','accepted')">Accept / assign</button><button class="ghost" onclick="window.updateJob('${id}','declined')">Decline</button></div>`;if(mode==='driver'&&status==='pending')actions=`<div class="job-actions"><button class="primary" onclick="window.updateJob('${id}','accepted')">Accept</button><button class="ghost" onclick="window.updateJob('${id}','declined')">Decline</button></div>`;if(mode==='driver'&&status==='accepted')actions=`<div class="job-actions"><button class="light" onclick="window.updateJob('${id}','arrived')">Arrived</button><button class="primary" onclick="window.updateJob('${id}','completed')">Complete</button></div>`;return `<article class="job"><h3>${j.pickup} → ${j.destination}</h3><p><b>${date} at ${time}</b> • ${j.passengers} passenger(s)</p><p>${j.vehicle} • ${j.luggage?.hand??0} hand, ${j.luggage?.large??0} large, ${j.luggage?.extraLarge??0} XL</p><p>Guide estimate: <b>${j.estimate?'£'+j.estimate:'Manual quote'}</b>${j.priceType?` • ${j.priceType}`:''} • Status: <b>${normaliseStatus(status)}</b>${j.driverName?` • ${j.driverName}`:''}</p><small>${j.reference||id} • ${j.name||'Customer'}${j.mobile?' • '+j.mobile:''}</small>${actions}</article>`}
+window.updateJob=async(id,status)=>{const driverName=liveState.user?.displayName||liveState.user?.email||'Driver';try{if(liveState.firebaseReady)await updateLiveBooking(id,{status,driverId:liveState.user?.uid||null,driverName:status==='declined'?null:driverName});else saveLocal(localBookings().map(j=>j.id===id?{...j,status,driverName}:j));toast(`Booking ${status}`)}catch(e){console.error(e);toast('Unable to update booking')}};
+function renderAll(){const b=currentBookings();$('#ownerBookings').innerHTML=b.length?b.map(j=>jobHTML(j,'owner')).join(''):'<p>No bookings yet.</p>';$('#driverJobs').innerHTML=b.filter(j=>['pending','accepted','arrived'].includes((j.status||'').toLowerCase())).map(j=>jobHTML(j,'driver')).join('')||'<div class="card"><p>No available jobs.</p></div>';$('#pendingCount').textContent=b.filter(j=>(j.status||'').toLowerCase()==='pending').length;$('#acceptedCount').textContent=b.filter(j=>['accepted','arrived'].includes((j.status||'').toLowerCase())).length}
 
-      return [
-        'Hello, I would like a transfer quotation.',
-        '',
-        'Pickup: '+pickup,
-        'Destination: '+destination,
-        'Collection date: '+dateValue,
-        'Collection time: '+timeValue,
-        'Passengers: '+passengers,
-        'Luggage / large cases: '+luggage,
-        'Journey type: '+journey,
-        '',
-        'Name: '+name,
-        'Telephone: '+customerPhone,
-        'Email: '+customerEmail,
-        '',
-        'Additional details:',
-        details
-      ].join('\n');
-    };
-
-    const validateForm=()=>{
-      if(!form.reportValidity()) return false;
-      return true;
-    };
-
-    form.querySelectorAll('[data-send-method]').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        if(!validateForm()) return;
-        const method=btn.dataset.sendMethod;
-        const message=buildMessage();
-        const status=form.querySelector('.form-status');
-
-        if(method==='whatsapp'){
-          window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(message),'_blank','noopener');
-          if(status) status.textContent='WhatsApp has been opened with your quotation details ready to send.';
-        }else if(method==='email'){
-          const subject='Transfer quotation request';
-          window.location.href='mailto:'+email+
-            '?subject='+encodeURIComponent(subject)+
-            '&body='+encodeURIComponent(message);
-          if(status) status.textContent='Your email application should now open with the quotation details ready to send.';
-        }else if(method==='sms'){
-          const isiOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
-          const separator=isiOS?'&':'?';
-          window.location.href='sms:+'+phone+separator+'body='+encodeURIComponent(message);
-          if(status) status.textContent='Your text messaging app should now open with the quotation details ready to send.';
-        }
-      });
-    });
-
-    form.addEventListener('submit',e=>e.preventDefault());
-  }
-
-  let deferred;
-  const box=document.querySelector('#install-app');
-  const installButton=document.querySelector('#install-button');
-  window.addEventListener('beforeinstallprompt',e=>{
-    e.preventDefault();
-    deferred=e;
-    if(box) box.classList.add('show');
-  });
-  if(installButton) installButton.addEventListener('click',async()=>{
-    if(!deferred)return;
-    deferred.prompt();
-    await deferred.userChoice;
-    deferred=null;
-    if(box) box.classList.remove('show');
-  });
-
-  if('serviceWorker' in navigator){
-    window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js?v=18').catch(()=>{}));
-  }
-})();
+$('#onlineToggle').onchange=e=>{const on=e.target.checked,status=$('#driverGpsStatus');$('#driverStatus').className='status '+(on?'on':'off');$('#driverStatus').textContent=on?'You are online and receiving jobs':'You are offline';if(driverWatchId!==null){navigator.geolocation.clearWatch(driverWatchId);driverWatchId=null}if(!liveState.firebaseReady)return;if(!on){status.classList.add('hidden');setDriverOnline(false,null);return}if(!navigator.geolocation){status.textContent='GPS is unavailable on this device.';status.className='gps-status error';return setDriverOnline(true,null)}status.textContent='Sharing your live position while you are on shift…';status.className='gps-status';driverWatchId=navigator.geolocation.watchPosition(p=>{const coords={lat:p.coords.latitude,lng:p.coords.longitude,accuracy:Math.round(p.coords.accuracy),heading:p.coords.heading||null,speed:p.coords.speed||null};setDriverOnline(true,coords);status.textContent=`Live location active • accuracy about ${coords.accuracy} metres`;},err=>{status.textContent='Live location permission is required while online.';status.className='gps-status error';setDriverOnline(true,null);console.warn(err)},{enableHighAccuracy:true,maximumAge:10000,timeout:20000})};
+$('#clearDemo').onclick=()=>{if(!liveState.firebaseReady&&confirm('Clear all local demonstration bookings?'))saveLocal([])};
+$('#copyDriverLink').onclick=async()=>{await navigator.clipboard.writeText(location.origin+location.pathname+'#driver');toast('Driver installation link copied')};
+$('#staffSignOut').onclick=()=>signOutUser();
+const dialog=$('#loginDialog');$$('[data-action="open-login"]').forEach(b=>b.onclick=()=>dialog.showModal());$('#accountBtn').onclick=()=>liveState.user?signOutUser():dialog.showModal();$('#closeLoginDialog').onclick=()=>dialog.close();dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
+$('#loginForm').onsubmit=async e=>{e.preventDefault();$('#loginMessage').textContent='Signing in…';try{await signIn($('#loginEmail').value,$('#loginPassword').value);dialog.close();toast('Signed in')}catch(err){console.error(err);$('#loginMessage').textContent='Sign-in failed. Check the email and password.'}};
+function applyAccess(){const role=liveState.role;$('#modeBadge').textContent=liveState.firebaseReady?'Live connected':'Demo mode';$('#modeBadge').classList.toggle('live',liveState.firebaseReady);$('#accountBtn').textContent=liveState.user?'Sign out':'Staff sign in';$('#staffGateDriver').classList.toggle('hidden',role==='driver'||role==='owner'||!liveState.enabled);$('#driverArea').classList.toggle('hidden',!(role==='driver'||role==='owner'||!liveState.enabled));$('#staffGateOwner').classList.toggle('hidden',role==='owner'||!liveState.enabled);$('#ownerArea').classList.toggle('hidden',!(role==='owner'||!liveState.enabled));unsubscribe();if(liveState.firebaseReady&&liveState.user)unsubscribe=subscribeBookings(v=>{remoteBookings=v;renderAll()});renderAll()}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').classList.remove('hidden')});$('#installBtn').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null}};
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
+if(location.hash==='#driver')document.querySelector('[data-view="driverView"]').click();
+await loadGoogleMaps();attachAutocomplete($('#pickup'));attachAutocomplete($('#destination'));
+await initFirebase(applyAccess);applyAccess();

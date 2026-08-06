@@ -1,45 +1,46 @@
-# North Cornwall Airport Transfers V5
+# Rob's Travel Booking App
 
-This is the premium, responsive website build.
+Git-based production project for the Rob's Travel customer booking app, driver view and owner dashboard.
 
-## Contact details
-Phone and WhatsApp: 07356 070904
-Email: info@northcornwallairporttransfers.co.uk
-Website: https://northcornwallairporttransfers.co.uk
+## Current features
 
-## Mobile behaviour
-The website automatically changes layout by screen width:
-- desktop: full navigation and multi-column content;
-- tablet: two-column content;
-- phone: one-column content, collapsible menu, large fields and fixed Call/WhatsApp buttons.
+- Book Now and Book for Later
+- Phone GPS pickup permission
+- Airport quick destinations
+- Passenger, vehicle and luggage options
+- Guide fare estimator using configured Cornwall Council tariff values
+- Rob's Travel fixed-price route matching
+- Firebase Authentication and Firestore
+- Owner and driver roles
+- Driver online/offline and live-location structure
+- Installable PWA
+- Cloudflare Pages-compatible root structure
 
-No separate mobile website is required.
+## Cloudflare deployment
 
-## Upload
-1. Extract this ZIP.
-2. Open the existing GitHub repository.
-3. Add file > Upload files.
-4. Upload everything inside this folder.
-5. Commit changes.
-6. Allow Cloudflare to deploy automatically.
-7. Refresh the live site using Ctrl+F5 or clear the phone browser cache.
+This is a static project. In Cloudflare:
 
-## Included
-- 59 SEO pages
-- airport and pickup-area pages
-- original locally hosted travel illustrations
-- responsive design
-- call and WhatsApp actions
-- quote form
-- structured data
-- sitemap.xml
-- robots.txt
-- manifest
-- Google Business Profile setup guide
+- Build command: leave blank
+- Build output directory: `/` or `.` if Cloudflare asks
+- Root directory: leave blank
+- Production branch: `main`
 
-## Form delivery
-The form currently uses the configured fallback email unless a form endpoint is added in site-config.js.
-Test it from the live website before advertising.
+The file `index.html` is at the repository root, preventing the 404 caused by uploading a nested folder.
 
-## Google Maps / Business Profile
-Read GOOGLE-BUSINESS-PROFILE-GUIDE.txt before creating the profile.
+## Firebase
+
+The live project is configured for `robs-travel-taxis`. The Firebase web configuration is public by design; access is protected by Authentication and Firestore rules.
+
+Publish the rules in `firebase/firestore.rules`.
+
+## Google Maps
+
+Add a browser-restricted key to `googleMapsApiKey` in `config.js` after enabling the required Maps services.
+
+## Fixed-price routes
+
+Enter exact Rob's Travel fixed prices in `prePricedRoutes` in `config.js`.
+
+```js
+{ from: ["bude"], to: ["exeter airport", "ex5 2bd"], price: 145.00, label: "Bude to Exeter Airport" }
+```

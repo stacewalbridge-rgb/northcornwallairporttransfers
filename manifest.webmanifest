@@ -1,19 +1,19 @@
 {
-  "name": "North Cornwall Airport Transfers",
-  "short_name": "NC Transfers",
-  "description": "Airport, station, seaport and long-distance transfer enquiries.",
-  "start_url": "/",
-  "scope": "/",
+  "name": "Rob's Travel – Bude Taxi Booking",
+  "short_name": "Rob's Travel",
+  "description": "Book a taxi now or in advance with Rob's Travel in Bude and North Cornwall.",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "orientation": "any",
-  "background_color": "#edf6fc",
-  "theme_color": "#0b2944",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "orientation": "portrait-primary",
   "icons": [
-    {
-      "src": "/assets/brand-logo.webp",
-      "sizes": "512x512",
-      "type": "image/webp",
-      "purpose": "any maskable"
-    }
+    {"src":"assets/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"assets/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ],
+  "shortcuts": [
+    {"name":"Book now","short_name":"Book now","url":"./#book-now","icons":[{"src":"assets/icon-192.png","sizes":"192x192"}]},
+    {"name":"Driver jobs","short_name":"Driver","url":"./#driver","icons":[{"src":"assets/icon-192.png","sizes":"192x192"}]}
   ]
 }

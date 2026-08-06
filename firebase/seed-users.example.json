@@ -1,0 +1,15 @@
+{
+  "instructions": "After creating users in Firebase Authentication, create matching documents in Firestore collection users using their Authentication UID as the document ID.",
+  "owner": {
+    "email": "stace.walbridge@gmail.com",
+    "role": "owner",
+    "active": true,
+    "displayName": "Owner"
+  },
+  "driver": {
+    "email": "driver@example.com",
+    "role": "driver",
+    "active": true,
+    "displayName": "Driver name"
+  }
+}

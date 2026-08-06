@@ -1,256 +1,134 @@
 <!doctype html>
-<html lang="en-GB">
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>North Cornwall Airport Transfers | Airport, Rail & Long-Distance Travel</title>
-  <meta name="description" content="Professional pre-booked airport, station, seaport and long-distance transfers from North Cornwall and surrounding areas. Request a personalised quotation by WhatsApp, email or text.">
-  <meta name="theme-color" content="#0b2944">
-  <meta name="robots" content="index,follow,max-image-preview:large">
-  <link rel="canonical" href="https://northcornwallairporttransfers.co.uk/">
-  <link rel="icon" href="assets/favicon.svg">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="preload" as="image" href="assets/bristol-airport-transfer.webp">
-  <link rel="stylesheet" href="styles.css?v=18">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#07111f" />
+  <meta name="description" content="Rob's Travel taxi booking app for Bude and North Cornwall." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Rob's Travel | Taxi Booking</title>
 </head>
-<body class="v15-home">
-<a class="skip" href="#main">Skip to content</a>
-
-<header class="site-header v15-header">
-  <div class="wrap nav">
-    <a class="brand" href="index.html" aria-label="North Cornwall Airport Transfers home">
-      <img src="assets/brand-logo.webp" alt="North Cornwall Airport Transfers logo">
-      <span class="brand-copy">
-        <strong>North Cornwall</strong>
-        <span>Airport Transfers</span>
-      </span>
-    </a>
-    <button class="nav-toggle" type="button" aria-label="Open navigation" aria-controls="main-menu">Menu</button>
-    <nav class="menu" id="main-menu">
-      <a class="active" href="index.html">Home</a>
-      <a href="airports.html">Airport Transfers</a>
-      <a href="stations.html">Train Stations</a>
-      <a href="ports.html">Cruise Ports</a>
-      <a href="business-accounts.html">Business Accounts</a>
-      <a href="about.html">About Us</a>
-      <a href="contact.html">Contact</a>
-      <a class="header-call" data-phone-link href="#">07356 070904</a>
-    </nav>
-  </div>
-</header>
-
-<main id="main">
-  <section class="showcase-hero">
-    <div class="hero-terminal">
-      <img src="assets/bristol-airport-transfer.webp"
-           alt="Bristol Airport transfer service"
-           width="1200" height="700">
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="rt">RT</div>
+      <div><strong>ROB'S TRAVEL</strong><small>Bude & North Cornwall</small></div>
     </div>
-    <div class="wrap showcase-hero-grid">
-      <div class="showcase-copy">
-        <span class="showcase-kicker">Executive airport transfers</span>
-        <h1>Travel well.<br>Arrive <em>composed.</em></h1>
-        <p>Professional airport, rail, seaport and long-distance transfers from North Cornwall and surrounding areas.</p>
+    <div class="header-actions"><span id="modeBadge" class="mode-badge">Demo mode</span><button id="accountBtn" class="ghost">Staff sign in</button><button id="installBtn" class="ghost hidden">Install app</button></div>
+  </header>
 
-        <div class="hero-benefits">
-          <div><span>◎</span><strong>Professional drivers</strong></div>
-          <div><span>✈</span><strong>Flight-aware planning</strong></div>
-          <div><span>◇</span><strong>Personal quotations</strong></div>
-          <div><span>◷</span><strong>Pre-booked service</strong></div>
+  <main id="app">
+    <section id="customerView" class="view active">
+      <div class="hero card">
+        <p class="eyebrow">SAFE • RELIABLE • LOCAL</p>
+        <h1>Where can we take you?</h1>
+        <p>Book now using your phone location, or reserve a taxi for later.</p>
+        <div class="quick-destinations">
+          <p class="eyebrow">QUICK DESTINATIONS</p>
+          <div id="airportButtons" class="quick-grid"></div>
         </div>
-
         <div class="hero-actions">
-          <a class="btn btn-primary" href="#homepage-quote">Get a quote</a>
-          <a class="btn btn-light-outline" data-phone-link href="#">Call now</a>
+          <button class="primary big" data-action="book-now">📍 Book Now</button>
+          <button class="light big" data-action="book-later">📅 Book for Later</button>
         </div>
+        <a class="call" href="tel:07771824141">☎ Call 0777 182 4141</a>
       </div>
-    </div>
-  </section>
 
-  <section class="quote-float-section" id="homepage-quote">
-    <div class="wrap">
-      <form id="quote-form" class="homepage-quote-panel">
-        <div class="quote-heading-row">
-          <div>
-            <span class="showcase-kicker">Plan your journey</span>
-            <h2>Request a personalised quote</h2>
-            <p>We’ll check the route, timing, luggage and suitable vehicle personally.</p>
+      <section id="bookingPanel" class="card hidden">
+        <div class="section-head"><div><p class="eyebrow">JOURNEY PLANNER</p><h2 id="bookingTitle">Book a taxi</h2></div><button class="icon" data-action="close-booking">✕</button></div>
+        <form id="bookingForm">
+          <label>Pickup
+            <div class="input-row"><input id="pickup" required placeholder="Current location or full address" /><button type="button" class="small" id="locateBtn">Use GPS</button></div>
+          </label>
+          <label>Destination<input id="destination" required placeholder="Full address or postcode" /></label>
+          <div class="quick-destinations form-quick">
+            <span>Popular destinations</span>
+            <div id="formAirportButtons" class="quick-grid compact"></div>
           </div>
-          <span class="no-payment">✓ No payment required</span>
+          <div id="gpsStatus" class="gps-status hidden" aria-live="polite"></div>
+          <div id="routeMap" class="route-map hidden" aria-label="Journey route map"></div>
+          <button type="button" id="addStopBtn" class="text-btn">+ Add another pickup or stop</button>
+          <div id="stops"></div>
+          <div class="grid2">
+            <label>Date<input id="date" type="date" required /></label>
+            <label>Time<input id="time" type="time" required /></label>
+          </div>
+          <div class="grid2">
+            <label>Passengers<select id="passengers"></select></label>
+            <label>Vehicle<select id="vehicle"><option>Standard car</option><option>Executive car upon request</option><option>MPV / Minibus</option></select></label>
+          </div>
+          <div class="grid3">
+            <label>Hand luggage<select id="handLuggage"></select></label>
+            <label>Large cases<select id="largeLuggage"></select></label>
+            <label>Extra-large<select id="xlLuggage"></select></label>
+          </div>
+          <label>Flight, train or ferry details<input id="travelDetails" placeholder="Optional" /></label>
+          <label class="check"><input id="returnJourney" type="checkbox" /> Return journey required</label>
+          <div class="grid2">
+            <label>Name<input id="name" placeholder="Your name" /></label>
+            <label>Mobile<input id="mobile" type="tel" placeholder="Mobile number" /></label>
+          </div>
+          <label>Email<input id="email" type="email" placeholder="Email address" /></label>
+          <label>Payment preference<select id="payment"><option>Cash</option><option>Card</option><option>No preference</option></select></label>
+          <label>Notes<textarea id="notes" placeholder="Child seat, pet, accessibility or luggage details"></textarea></label>
+          <label>Fare type<select id="fareType"><option value="auto">Automatically choose the correct tariff</option><option value="day">Day tariff</option><option value="night">Night / Sunday / bank holiday tariff</option><option value="special">Christmas / New Year special tariff</option></select></label>
+          <button type="button" id="estimateBtn" class="light full">Get estimated fare</button>
+          <div id="estimateBox" class="estimate hidden"></div>
+          <button type="submit" class="primary full">Request this booking</button>
+          <p class="fineprint">Estimates are a guide only. The final fare may vary due to route changes, waiting, additional stops, tolls, airport charges and the applicable Cornwall Council tariff. A booking is confirmed only after Rob's Travel accepts it.</p>
+        </form>
+      </section>
+
+      <section class="services card">
+        <h2>Our services</h2>
+        <div class="service-grid">
+          <div>✈️<strong>Airport transfers</strong><span>Pre-booked UK airport travel</span></div>
+          <div>🛣️<strong>Long distance</strong><span>Cornwall, Devon and beyond</span></div>
+          <div>👥<strong>MPV & minibus</strong><span>Six and eight-seat options</span></div>
+          <div>💍<strong>Weddings</strong><span>Smart transport for your day</span></div>
         </div>
+      </section>
 
-        <div class="compact-quote-grid">
-          <div class="field">
-            <label>Pickup location</label>
-            <input name="pickup" required autocomplete="street-address" placeholder="Enter address or postcode">
-          </div>
-          <div class="field">
-            <label>Destination</label>
-            <input name="destination" required placeholder="Airport, station or port">
-          </div>
-          <div class="field">
-            <label>Date</label>
-            <input type="date" name="date" required>
-          </div>
-          <div class="field">
-            <label>Time</label>
-            <input type="time" name="time" required>
-          </div>
-          <div class="field compact-extra">
-            <label>Passengers</label>
-            <select name="passengers"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8+</option></select>
-          </div>
-          <div class="field compact-extra">
-            <label>Large cases</label>
-            <select name="luggage"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6+</option></select>
-          </div>
-          <div class="field compact-extra">
-            <label>Name</label>
-            <input name="name" required autocomplete="name">
-          </div>
-          <div class="field compact-extra">
-            <label>Telephone</label>
-            <input name="phone" required autocomplete="tel">
-          </div>
-          <div class="field compact-extra full">
-            <label>Email</label>
-            <input type="email" name="email" required autocomplete="email">
-          </div>
-          <div class="field compact-extra full">
-            <label>Journey details or special requirements</label>
-            <textarea name="details" placeholder="Flight number, return journey, child seats or other details"></textarea>
-          </div>
-        </div>
+      <section class="community card">
+        <p class="eyebrow">LOCAL COMMUNITY</p><h2>Proud to support local sport</h2>
+        <p>Rob's Travel is proud to support clubs and young teams across Bude.</p>
+        <div class="chips"><span>Bude Hockey Club U12s</span><span>Bude Hockey Club U13s</span><span>Bude Football Club</span><span>Bude Blades Football Team</span></div>
+      </section>
+    </section>
 
-        <div class="quote-send-options" aria-labelledby="send-choice-title">
-          <span class="send-step-label">Choose how to send</span>
-          <h3 id="send-choice-title">Your journey details will be prepared automatically</h3>
-          <div class="quote-send-grid">
-            <button type="button" class="btn btn-whatsapp quote-send-btn" data-send-method="whatsapp">
-              <span class="send-number">1</span>
-              <span><strong>WhatsApp</strong><small>Recommended • quickest response</small></span>
-            </button>
-            <button type="button" class="btn btn-email quote-send-btn" data-send-method="email">
-              <span class="send-number">2</span>
-              <span><strong>Email</strong><small>Open your email provider</small></span>
-            </button>
-            <button type="button" class="btn btn-sms quote-send-btn" data-send-method="sms">
-              <span class="send-number">3</span>
-              <span><strong>Text message</strong><small>Open your messaging app</small></span>
-            </button>
-          </div>
-          <p class="form-status" aria-live="polite"></p>
-        </div>
-      </form>
-    </div>
-  </section>
+    <section id="driverView" class="view">
+      <div class="card section-head"><div><p class="eyebrow">DRIVER APP</p><h1>Driver jobs</h1></div><label class="switch"><input id="onlineToggle" type="checkbox"><span></span></label></div>
+      <div id="staffGateDriver" class="card staff-gate"><h2>Driver sign-in required</h2><p>Drivers use their own email and password. The owner can disable access at any time.</p><button class="primary full" data-action="open-login">Driver sign in</button></div><div id="driverArea" class="hidden"><div id="driverStatus" class="status off">You are offline</div><div id="driverGpsStatus" class="gps-status hidden" aria-live="polite"></div>
+      <div id="driverJobs"></div></div>
+    </section>
 
-  <section class="section destinations-showcase">
-    <div class="wrap">
-      <div class="showcase-section-head">
-        <span class="showcase-kicker">Where can we take you?</span>
-        <h2>Popular transfer services</h2>
-        <p>Pre-booked, door-to-door travel to airports, stations, ports and destinations throughout the UK.</p>
-      </div>
+    <section id="ownerView" class="view"><div id="staffGateOwner" class="card staff-gate"><h2>Owner sign-in required</h2><p>Only the owner account can see all bookings, drivers and business settings.</p><button class="primary full" data-action="open-login">Owner sign in</button></div><div id="ownerArea" class="hidden">
+      <div class="card"><p class="eyebrow">OWNER DASHBOARD</p><h1>Bookings and drivers</h1><div class="stats"><div><b id="pendingCount">0</b><span>Pending</span></div><div><b id="acceptedCount">0</b><span>Accepted</span></div><div><b id="driverCount">2</b><span>Drivers</span></div></div></div>
+      <div class="card"><div class="section-head"><h2>Bookings</h2><button id="clearDemo" class="ghost">Clear demo data</button></div><div id="ownerBookings"></div></div>
+      <div class="card"><h2>Pricing setup</h2><p>The app first checks the pre-priced route list in <code>config.js</code>. If no fixed route matches, it calculates a Cornwall Council tariff estimate from the Google driving route.</p><p class="fineprint">You can change fixed prices and tariff values later without rebuilding the screens.</p></div>
+      <div class="card"><h2>Driver access</h2><p>Drivers install the same app link and sign in using the account you create for them.</p><button class="light full" id="copyDriverLink">Copy driver install link</button><button class="ghost full" id="staffSignOut">Sign out</button></div></div>
+    </section>
+  </main>
 
-      <div class="service-showcase-grid">
-        <a class="service-showcase-card" href="airports.html">
-          <img src="assets/heathrow-card.webp" alt="Airport terminal">
-          <div><span class="service-icon">✈</span><h3>Airport Transfers</h3><p>Heathrow, Gatwick, Bristol, Exeter, Newquay and more.</p><strong>View airports →</strong></div>
-        </a>
-        <a class="service-showcase-card" href="stations.html">
-          <img src="assets/exeter-st-davids.webp" alt="Train station">
-          <div><span class="service-icon">▣</span><h3>Train Stations</h3><p>Exeter, Plymouth, Paddington, Bodmin Parkway and more.</p><strong>View stations →</strong></div>
-        </a>
-        <a class="service-showcase-card" href="ports.html">
-          <img src="assets/cruise-port-transfer.webp" alt="Cruise ship at port">
-          <div><span class="service-icon">♢</span><h3>Cruise Ports</h3><p>Southampton, Falmouth, Plymouth, Portsmouth and more.</p><strong>View ports →</strong></div>
-        </a>
-        <a class="service-showcase-card" href="quote.html">
-          <img src="assets/coast-airport.svg" alt="Long-distance coastal road">
-          <div><span class="service-icon">⌖</span><h3>Long Distance</h3><p>Private UK-wide travel arranged around your requirements.</p><strong>Plan a journey →</strong></div>
-        </a>
-      </div>
+  <nav class="bottom-nav">
+    <button class="active" data-view="customerView">🏠<span>Book</span></button>
+    <button data-view="driverView">🚕<span>Driver</span></button>
+    <button data-view="ownerView">🛡️<span>Owner</span></button>
+    <a href="https://robs-travel.co.uk" target="_blank">🌐<span>Website</span></a>
+  </nav>
 
-      <div class="trust-strip">
-        <div><span>◇</span><strong>Personal quotations</strong><small>Clear journey pricing</small></div>
-        <div><span>✈</span><strong>Flight-aware planning</strong><small>Arrival details considered</small></div>
-        <div><span>◎</span><strong>Meet and greet</strong><small>Arranged where agreed</small></div>
-        <div><span>◷</span><strong>Direct support</strong><small>Call or WhatsApp</small></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section why-showcase">
-    <div class="wrap why-grid">
-      <div>
-        <span class="showcase-kicker">Why choose us?</span>
-        <h2>Reliable. Professional.<br>Every journey.</h2>
-        <p>Local route knowledge combined with careful planning for comfortable, dependable pre-booked travel.</p>
-        <ul class="luxury-checks">
-          <li>Direct, friendly communication</li>
-          <li>Vehicle suitability checked against passengers and luggage</li>
-          <li>Airport, station, seaport and long-distance experience</li>
-          <li>Business and leisure clients welcome</li>
-        </ul>
-        <a class="btn btn-primary" href="about.html">About us</a>
-      </div>
-      <div class="why-image">
-        <img src="assets/bristol-card.webp" alt="Airport terminal interior">
-      </div>
-    </div>
-  </section>
-
-  <section class="section business-showcase">
-    <div class="wrap business-showcase-panel">
-      <div class="business-roundel">▣</div>
-      <div>
-        <span class="showcase-kicker">Business accounts</span>
-        <h2>We welcome business clients.</h2>
-        <p>Regular and one-off bookings, professional communication and a range of payment methods available by agreement.</p>
-      </div>
-      <ul>
-        <li>Corporate and staff travel</li>
-        <li>Guest and visitor transfers</li>
-        <li>Card, bank transfer or agreed account terms</li>
-      </ul>
-      <a class="btn btn-gold" href="business-accounts.html">Business accounts</a>
-    </div>
-  </section>
-
-  <section class="install-app" id="install-app">
-    <div class="wrap install-inner">
-      <span><strong>Add North Cornwall Airport Transfers to your phone</strong><small>Install the website like an app for faster access.</small></span>
-      <button class="btn btn-dark" id="install-button" type="button">Install</button>
-    </div>
-  </section>
-</main>
-
-<footer class="footer v15-footer">
-  <div class="wrap">
-    <div class="footer-grid">
-      <div>
-        <a class="brand footer-brand" href="index.html">
-          <img src="assets/brand-logo.webp" alt="">
-          <span class="brand-copy"><strong>North Cornwall</strong><span>Airport Transfers</span></span>
-        </a>
-        <p>Professional airport, rail, seaport and long-distance transfers from North Cornwall and surrounding areas.</p>
-        <p><a data-phone-link href="#">07356 070904</a><br><a data-email-link href="#">info@northcornwallairporttransfers.co.uk</a></p>
-      </div>
-      <div><h3>Quick links</h3><a href="airports.html">Airport transfers</a><a href="stations.html">Train stations</a><a href="ports.html">Cruise ports</a><a href="business-accounts.html">Business accounts</a></div>
-      <div><h3>Popular destinations</h3><a href="airports/heathrow-airport-transfers.html">Heathrow Airport</a><a href="airports/gatwick-airport-transfers.html">Gatwick Airport</a><a href="airports/bristol-airport-transfers.html">Bristol Airport</a><a href="airports/exeter-airport-transfers.html">Exeter Airport</a></div>
-      <div><h3>Information</h3><a href="about.html">About us</a><a href="contact.html">Contact</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div>
-    </div>
-    <div class="legal">© <span data-year></span> North Cornwall Airport Transfers. Pre-booked journeys only.</div>
-  </div>
-</footer>
-
-<div class="sticky-mobile">
-  <a class="btn btn-primary" data-phone-link href="#">Call</a>
-  <a class="btn btn-whatsapp" data-whatsapp href="#">WhatsApp</a>
-</div>
-
-<script src="site-config.js?v=18"></script>
-<script src="app.js?v=18"></script>
+  <dialog id="loginDialog" class="login-dialog">
+    <form method="dialog" id="loginForm">
+      <div class="section-head"><div><p class="eyebrow">STAFF ACCESS</p><h2>Sign in</h2></div><button type="button" class="icon" id="closeLoginDialog" aria-label="Close staff sign-in">✕</button></div>
+      <label>Email<input id="loginEmail" type="email" required autocomplete="username" /></label>
+      <label>Password<input id="loginPassword" type="password" required autocomplete="current-password" /></label>
+      <button class="primary full" value="default">Sign in securely</button>
+      <p id="loginMessage" class="fineprint">Owner and driver accounts are managed through Firebase Authentication.</p>
+    </form>
+  </dialog>
+  <div id="toast" class="toast"></div>
+  <script src="config.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
