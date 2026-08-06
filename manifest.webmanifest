@@ -6,8 +6,8 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f7f3ec",
-  "theme_color": "#171b1d",
+  "background_color": "#edf6fc",
+  "theme_color": "#0b2944",
   "icons": [
     {
       "src": "/assets/brand-logo.webp",

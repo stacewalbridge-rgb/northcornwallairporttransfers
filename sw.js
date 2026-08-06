@@ -1,5 +1,5 @@
-const CACHE='ncat-v14-contact-fix-20260806';
-const CORE=['/','/index.html','/contact.html','/styles.css?v=14','/app.js?v=14','/site-config.js?v=14','/assets/brand-logo.webp'];
+const CACHE='ncat-v15-responsive-showcase-20260806';
+const CORE=['/','/index.html','/styles.css?v=15','/app.js?v=15','/site-config.js?v=15','/assets/brand-logo.webp','/assets/bristol-airport-transfer.webp'];
 self.addEventListener('install',event=>{
   self.skipWaiting();
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)));
