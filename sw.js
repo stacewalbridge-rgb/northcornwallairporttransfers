@@ -1,5 +1,5 @@
-const CACHE='ncat-v13-luxury-20260806';
-const CORE=['/','/index.html','/styles.css?v=13','/app.js?v=13','/site-config.js?v=13','/assets/brand-logo.webp','/business-accounts.html'];
+const CACHE='ncat-v14-contact-fix-20260806';
+const CORE=['/','/index.html','/contact.html','/styles.css?v=14','/app.js?v=14','/site-config.js?v=14','/assets/brand-logo.webp'];
 self.addEventListener('install',event=>{
   self.skipWaiting();
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)));

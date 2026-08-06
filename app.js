@@ -4,7 +4,7 @@
   const display=C.phoneDisplay||'07356 070904';
   const email=C.email||'info@northcornwallairporttransfers.co.uk';
 
-  document.querySelectorAll('[data-phone-link]').forEach(a=>{
+  document.querySelectorAll('[data-phone-link]:not([data-email-link])').forEach(a=>{
     a.href='tel:+'+phone;
     if(!a.textContent.trim() || !a.textContent.includes('Call')) a.textContent=display;
   });
@@ -147,6 +147,6 @@
   });
 
   if('serviceWorker' in navigator){
-    window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js?v=13').catch(()=>{}));
+    window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js?v=14').catch(()=>{}));
   }
 })();
